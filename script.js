@@ -28,6 +28,18 @@ const ball = {
     speedY: 3
 };
 
+let lastSpeedIncreaseTime = performance.now();
+
+const SPEED_INCREASE_INTERVAL = 10000;
+const SPEED_MULTIPLAYER = 1.05;
+const MAX_BALL_SPEED = 12;
+
+
+const playerScoreDisplay = document.getElementById("playerScore");
+const computerScoreDisplay = document.getElementById("computerScore");
+let playerScore = 0;
+let computerScore = 0;
+
 const keys = {
     w: false,
     s: false,
@@ -40,6 +52,19 @@ document.addEventListener("keydown", function(event){
         keys[event.key] = true;
         event.preventDefault();
 
+    }
+});
+
+document.addEventListener("keyup", function(event){
+    if (event.key in keys) {
+        keys[event.key] = false;
+        event.preventDefault();
+    }
+});
+
+window.addEventListener("blur", function(){
+    for (const key in keys) {
+        keys[key] = false;
     }
 });
 
@@ -96,7 +121,7 @@ function update() {
     if (keys.s || keys.ArrowDown) {
         player.y += player.speed;
     }
-    
+
 
     if (player.y < 0) {
         player.y = 0;
@@ -107,8 +132,51 @@ function update() {
 
     }
 
+    const computerCenter = computer.y + computer.height /2;
+
+    if (computerCenter < ball.y - 10) {
+        computer.y += computer.speed;
+
+    }
+
+    if (computerCenter > ball.y + 10) {
+        computer.y -= computer.speed;
+
+    }
+
+    if (computer.y < 0) {
+        computer.y = 0;
+
+    }
+    if ( computer.y + computer.height > HEIGHT ) {
+        computer.y = HEIGHT - computer.height;
+
+    }
+
+    
+
+    const currentTime = performance.now();
+
+    if (currentTime - lastSpeedIncreaseTime >= SPEED_INCREASE_INTERVAL) {
+        const currentSpeed = Math.hypot(ball.speedX, ball.speedY);
+
+        const newSpeed = Math.min(
+            currentSpeed * SPEED_MULTIPLAYER,
+            MAX_BALL_SPEED
+        );
+
+        const speedRatio = newSpeed / currentSpeed;
+
+        ball.speedX *= speedRatio;
+        ball.speedY *= speedRatio;
+
+        lastSpeedIncreaseTime = currentTime;
+
+    }
+
     ball.x += ball.speedX;
     ball.y += ball.speedY;
+    
 
     if (
         ball.y - ball.size / 2 <= 0 ||
@@ -140,12 +208,28 @@ function update() {
         ball.speedX *= -1;
     }
 
+    if (ball.x + ball.size / 2 < 0) {
+        computerScore += 1;
+        computerScoreDisplay.textContent = computerScore;
+        resetBall(1);
+    } else if (ball.x - ball.size / 2 > WIDTH) {
+        playerScore += 1;
+        playerScoreDisplay.textContent = playerScore;
+        resetBall(-1);
+    }
+
+}
+
+function resetBall(direction) {
+    ball.x = WIDTH / 2;
+    ball.y = HEIGHT / 2;
+    ball.speedX = 5 * direction;
+    ball.speedY = 3;
 }
 
 function gameLoop() {
     update();
     draw();
-
 
     requestAnimationFrame(gameLoop);
 
