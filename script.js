@@ -28,6 +28,23 @@ const ball = {
     speedY: 3
 };
 
+const keys = {
+    w: false,
+    s: false,
+    ArrowUp: false,
+    ArrowDown: false
+};
+
+document.addEventListener("keydown", function(event){
+    if (event.key in keys) {
+        keys[event.key] = true;
+        event.preventDefault();
+
+    }
+});
+
+
+
 function draw() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
@@ -72,6 +89,24 @@ function draw() {
 }
 
 function update() {
+
+    if (keys.w || keys.ArrowUp) {
+        player.y -= player.speed;
+    }
+    if (keys.s || keys.ArrowDown) {
+        player.y += player.speed;
+    }
+    
+
+    if (player.y < 0) {
+        player.y = 0;
+
+    }
+    if (player.y + player.height > HEIGHT ) {
+        player.y = HEIGHT - player.height;
+
+    }
+
     ball.x += ball.speedX;
     ball.y += ball.speedY;
 
@@ -81,6 +116,28 @@ function update() {
     ) {
         ball.speedY *= -1;
 
+    }
+
+    // Collision with player paddle
+    if (
+        ball.x - ball.size / 2 <= player.x + player.width &&
+        ball.x + ball.size / 2 >= player.x &&
+        ball.y + ball.size / 2 >= player.y &&
+        ball.y - ball.size / 2 <= player.y + player.height &&
+        ball.speedX < 0
+    ) {
+        ball.speedX *= -1;
+    }
+
+    // Collision with computer paddle
+    if (
+        ball.x + ball.size / 2 >= computer.x &&
+        ball.x - ball.size / 2 <= computer.x + computer.width &&
+        ball.y + ball.size / 2 >= computer.y &&
+        ball.y - ball.size / 2 <= computer.y + computer.height &&
+        ball.speedX > 0
+    ) {
+        ball.speedX *= -1;
     }
 
 }
@@ -95,5 +152,3 @@ function gameLoop() {
 }
 
 gameLoop();
-
-// end
