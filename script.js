@@ -37,8 +37,10 @@ const MAX_BALL_SPEED = 12;
 
 const playerScoreDisplay = document.getElementById("playerScore");
 const computerScoreDisplay = document.getElementById("computerScore");
+const gameStatusDisplay = document.getElementById("gameStatus");
 let playerScore = 0;
 let computerScore = 0;
+let gameOver = false;
 
 const keys = {
     w: false,
@@ -114,6 +116,9 @@ function draw() {
 }
 
 function update() {
+    if (gameOver) {
+        return;
+    }
 
     if (keys.w || keys.ArrowUp) {
         player.y -= player.speed;
@@ -176,7 +181,7 @@ function update() {
 
     ball.x += ball.speedX;
     ball.y += ball.speedY;
-    
+
 
     if (
         ball.y - ball.size / 2 <= 0 ||
@@ -186,7 +191,8 @@ function update() {
 
     }
 
-    // Collision with player paddle
+
+
     if (
         ball.x - ball.size / 2 <= player.x + player.width &&
         ball.x + ball.size / 2 >= player.x &&
@@ -194,10 +200,11 @@ function update() {
         ball.y - ball.size / 2 <= player.y + player.height &&
         ball.speedX < 0
     ) {
-        ball.speedX *= -1;
+        hitPaddle(player, 1);
+
     }
 
-    // Collision with computer paddle
+
     if (
         ball.x + ball.size / 2 >= computer.x &&
         ball.x - ball.size / 2 <= computer.x + computer.width &&
@@ -205,20 +212,42 @@ function update() {
         ball.y - ball.size / 2 <= computer.y + computer.height &&
         ball.speedX > 0
     ) {
-        ball.speedX *= -1;
+        hitPaddle(computer, -1);
     }
 
     if (ball.x + ball.size / 2 < 0) {
         computerScore += 1;
         computerScoreDisplay.textContent = computerScore;
-        resetBall(1);
+        if (computerScore >= 11) {
+            gameOver = true;
+            gameStatusDisplay.textContent = "Computer wins!";
+        } else {
+            resetBall(1);
+        }
     } else if (ball.x - ball.size / 2 > WIDTH) {
         playerScore += 1;
         playerScoreDisplay.textContent = playerScore;
-        resetBall(-1);
+        if (playerScore >= 11) {
+            gameOver = true;
+            gameStatusDisplay.textContent = "Player wins!";
+        } else {
+            resetBall(-1);
+        }
     }
 
 }
+
+function hitPaddle(paddle, direction) {
+    const paddleCenter = paddle.y + paddle.height / 2;
+    const hitPosition = (ball.y - paddleCenter) / (paddle.height / 2);
+    const maxAngle = Math.PI / 3;
+    const angle = hitPosition * maxAngle;
+    const speed = Math.hypot(ball.speedX, ball.speedY);
+
+    ball.speedX = direction * speed * Math.cos(angle);
+    ball.speedY = speed * Math.sin(angle);
+}
+
 
 function resetBall(direction) {
     ball.x = WIDTH / 2;
