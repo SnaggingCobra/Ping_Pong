@@ -6,7 +6,7 @@
 }
 
 body {
-    background: #e9eee9;
+    background: #e9eee9 url("background.jpg") center / cover fixed no-repeat;
     color: #17251c;
     font-family: Arial, Helvetica, sans-serif;
     min-height: 100vh;
@@ -54,6 +54,11 @@ h1 {
 
 }
 
+.game-area {
+    position: relative;
+    width: 100%;
+}
+
 canvas {
     width: 100%;
     height: auto;
@@ -68,20 +73,109 @@ canvas {
 
 }
 
+.game-over-overlay {
+    position: absolute;
+    inset: 10px;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 18px;
+    background: rgba(10, 22, 14, 0.78);
+    backdrop-filter: blur(3px);
+}
+
+.game-over-overlay[hidden] {
+    display: none;
+}
+
+.game-over-card {
+    width: min(100%, 370px);
+    padding: 32px 28px;
+    border: 1px solid rgba(54, 108, 72, 0.25);
+    border-radius: 8px;
+    background: #f5f8f4;
+    color: #17251c;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+}
+
+.game-over-eyebrow,
+.final-score-label {
+    color: #647368;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 3px;
+}
+
+.game-over-card h2 {
+    margin-top: 10px;
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 3px;
+}
+
+.game-over-winner {
+    margin-top: 12px;
+    color: #2f7045;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.final-score-label {
+    margin-top: 22px;
+}
+
+.final-score {
+    margin-top: 4px;
+    font-size: 36px;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+
+.game-over-message {
+    margin-top: 8px;
+    color: #647368;
+    font-size: 14px;
+}
+
+
+.play-again-button {
+    margin-top: 24px;
+    padding: 13px 22px;
+    border: 0;
+    border-radius: 4px;
+    background: #2f7045;
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    transition: background-color 140ms ease, transform 140ms ease;
+}
+
+.play-again-button:hover {
+    background: #245c35;
+}
+
+.play-again-button:active {
+    transform: translateY(1px);
+
+}
+
+
+.play-again-button:focus-visible {
+    outline: 3px solid #9ac9a5;
+    outline-offset: 3px;
+
+}
+
 .controls {
     margin-top: 24px;
     color: #647368;
     font-size: 14px;
     letter-spacing: 1px;
 
-}
-
-.game-status {
-    min-height: 28px;
-    margin-top: 12px;
-    color: #245c35;
-    font-size: 22px;
-    font-weight: bold;
 }
 
 @media (max-width: 600px ) {
@@ -100,5 +194,13 @@ canvas {
 
     .controls {
         font-size: 12px;
+    }
+
+    .game-over-card {
+        padding: 26px 20px;
+    }
+
+    .game-over-card h2 {
+        font-size: 25px;
     }
 }

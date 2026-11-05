@@ -22,12 +22,36 @@
             </div>
         </div>
 
-        <canvas id="gameCanvas" width="800" height="400"></canvas>
-    <p id="gameStatus" class="game-status" aria-live="polite"></p>
+        <div class="game-area">
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
+            <section
+                id="gameOverOverlay"
+                class="game-over-overlay"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="gameOverTitle"
+                aria-describedby="gameOverWinner finalScore gameOverMessage"
+                hidden
+            >
+                <div class="game-over-card">
+                    <p class="game-over-eyebrow">MATCH COMPLETE</p>
+                    <h2 id="gameOverTitle">GAME OVER</h2>
+                    <p id="gameOverWinner" class="game-over-winner"></p>
+                    <p class="final-score-label">FINAL SCORE</p>
+                    <p id="finalScore" class="final-score"></p>
+                    <p id="gameOverMessage" class="game-over-message"></p>
+                    <button id="playAgainButton" class="play-again-button" type="button">
+                        PLAY AGAIN
+                    </button>
+                </div>
+            </section>
+        </div>
         <p class="controls">
             W - Move Up | S - Move Down 
         </p>
     </main>
+
+   
 
     <script src="script.js"></script>
 </body>

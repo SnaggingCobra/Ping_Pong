@@ -17,7 +17,7 @@ const computer = {
     y: HEIGHT / 2-50,
     width: 12,
     height: 100,
-    speed: 5
+    speed: 3
 };
 
 const ball = {
@@ -28,16 +28,28 @@ const ball = {
     speedY: 3
 };
 
+const ballImage = new Image();
+ballImage.src = "ball.jpg";
+
 let lastSpeedIncreaseTime = performance.now();
 
 const SPEED_INCREASE_INTERVAL = 10000;
 const SPEED_MULTIPLAYER = 1.05;
 const MAX_BALL_SPEED = 12;
+const COMPUTER_SLOW_SPEED = 2;
+const COMPUTER_FAST_SPEED = 4;
+const COMPUTER_SPEED_CHANGE_INTERVAL = 3000;
+let lastComputerSpeedChangeTime = performance.now();
+let nextComputerSpeed = COMPUTER_SLOW_SPEED;
 
 
 const playerScoreDisplay = document.getElementById("playerScore");
 const computerScoreDisplay = document.getElementById("computerScore");
-const gameStatusDisplay = document.getElementById("gameStatus");
+const gameOverOverlay = document.getElementById("gameOverOverlay");
+const gameOverWinner = document.getElementById("gameOverWinner");
+const finalScoreDisplay = document.getElementById("finalScore");
+const gameOverMessage = document.getElementById("gameOverMessage");
+const playAgainButton = document.getElementById("playAgainButton");
 let playerScore = 0;
 let computerScore = 0;
 let gameOver = false;
@@ -104,15 +116,26 @@ function draw() {
         computer.height
     );
 
-    ctx.beginPath();
-    ctx.arc(
-        ball.x,
-        ball.y,
-        ball.size / 2,
-        0,
-        Math.PI * 2
-    );
-    ctx.fill();
+    if (ballImage.complete && ballImage.naturalWidth > 0) {
+        const imageSize = ball.size * 1.4;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.size / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(
+            ballImage,
+            ball.x - imageSize / 2,
+            ball.y - imageSize / 2,
+            imageSize,
+            imageSize
+        );
+        ctx.restore();
+    } else {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
 
 function update() {
@@ -137,16 +160,23 @@ function update() {
 
     }
 
-    const computerCenter = computer.y + computer.height /2;
+    const currentTime = performance.now();
 
-    if (computerCenter < ball.y - 10) {
-        computer.y += computer.speed;
-
+    if (currentTime - lastComputerSpeedChangeTime >= COMPUTER_SPEED_CHANGE_INTERVAL) {
+        computer.speed = nextComputerSpeed;
+        nextComputerSpeed = nextComputerSpeed === COMPUTER_SLOW_SPEED
+            ? COMPUTER_FAST_SPEED
+            : COMPUTER_SLOW_SPEED;
+        lastComputerSpeedChangeTime = currentTime;
     }
 
-    if (computerCenter > ball.y + 10) {
-        computer.y -= computer.speed;
+    if (ball.x > WIDTH / 2) {
+        const computerCenter = computer.y + computer.height / 2;
+        const distanceToBall = ball.y - computerCenter;
 
+        if (Math.abs(distanceToBall) > 10) {
+            computer.y += Math.sign(distanceToBall) * computer.speed;
+        }
     }
 
     if (computer.y < 0) {
@@ -159,8 +189,6 @@ function update() {
     }
 
     
-
-    const currentTime = performance.now();
 
     if (currentTime - lastSpeedIncreaseTime >= SPEED_INCREASE_INTERVAL) {
         const currentSpeed = Math.hypot(ball.speedX, ball.speedY);
@@ -200,6 +228,7 @@ function update() {
         ball.y - ball.size / 2 <= player.y + player.height &&
         ball.speedX < 0
     ) {
+        ball.x = player.x + player.width + ball.size / 2;
         hitPaddle(player, 1);
 
     }
@@ -212,6 +241,7 @@ function update() {
         ball.y - ball.size / 2 <= computer.y + computer.height &&
         ball.speedX > 0
     ) {
+        ball.x = computer.x - ball.size / 2;
         hitPaddle(computer, -1);
     }
 
@@ -219,8 +249,7 @@ function update() {
         computerScore += 1;
         computerScoreDisplay.textContent = computerScore;
         if (computerScore >= 11) {
-            gameOver = true;
-            gameStatusDisplay.textContent = "Computer wins!";
+            endMatch("COMPUTER WINS!", "Better luck next time!");
         } else {
             resetBall(1);
         }
@@ -228,8 +257,7 @@ function update() {
         playerScore += 1;
         playerScoreDisplay.textContent = playerScore;
         if (playerScore >= 11) {
-            gameOver = true;
-            gameStatusDisplay.textContent = "Player wins!";
+            endMatch("YOU WIN!", "Great match!");
         } else {
             resetBall(-1);
         }
@@ -237,14 +265,29 @@ function update() {
 
 }
 
+function endMatch(winner, message) {
+    gameOver = true;
+    gameOverWinner.textContent = winner;
+    finalScoreDisplay.textContent = `${playerScore} - ${computerScore}`;
+    gameOverMessage.textContent = message;
+    gameOverOverlay.hidden = false;
+    playAgainButton.focus();
+}
+
+
+
+
 function hitPaddle(paddle, direction) {
     const paddleCenter = paddle.y + paddle.height / 2;
     const hitPosition = (ball.y - paddleCenter) / (paddle.height / 2);
+    
     const maxAngle = Math.PI / 3;
     const angle = hitPosition * maxAngle;
+
     const speed = Math.hypot(ball.speedX, ball.speedY);
 
     ball.speedX = direction * speed * Math.cos(angle);
+    
     ball.speedY = speed * Math.sin(angle);
 }
 
@@ -254,14 +297,50 @@ function resetBall(direction) {
     ball.y = HEIGHT / 2;
     ball.speedX = 5 * direction;
     ball.speedY = 3;
+
+    lastSpeedIncreaseTime = performance.now();
+}
+
+function startNewMatch() {
+    if (!gameOver) {
+        return;
+    }
+
+    playerScore = 0;
+    computerScore = 0;
+    playerScoreDisplay.textContent = playerScore;
+    computerScoreDisplay.textContent = computerScore;
+    player.y = HEIGHT / 2 - player.height / 2;
+    computer.y = HEIGHT / 2 - computer.height / 2;
+    computer.speed = 3;
+    nextComputerSpeed = COMPUTER_SLOW_SPEED;
+    lastComputerSpeedChangeTime = performance.now();
+
+    for (const key in keys) {
+        keys[key] = false;
+    }
+
+    resetBall(1);
+    gameOver = false;
+    gameOverOverlay.hidden = true;
+    draw();
+    requestAnimationFrame(gameLoop);
 }
 
 function gameLoop() {
+    if (gameOver) {
+        return;
+    }
+
     update();
     draw();
 
-    requestAnimationFrame(gameLoop);
+    if (!gameOver) {
+        requestAnimationFrame(gameLoop);
+    }
 
 }
+
+playAgainButton.addEventListener("click", startNewMatch);
 
 gameLoop();
